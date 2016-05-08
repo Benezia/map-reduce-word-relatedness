@@ -25,10 +25,11 @@ public class WordCount {
 	private static FileHandler logFile;
 	private static Logger logger;
 
-	public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable> {
+    
+	public static class TokenizerMapper extends Mapper<Object, Text, WordPair, IntWritable> {
 		Set<String> stopWords = new HashSet<String>();
-		private Text word = new Text();
-		
+	    private WordPair wordPair = new WordPair();
+
         @Override
         protected void setup(Context context) throws IOException {
             Configuration conf = context.getConfiguration();
@@ -73,40 +74,34 @@ public class WordCount {
 
 			if(stopWords.contains(mid))
 				return;
-
-	          word.set(mid);
+			wordPair.setWord(mid);
 				
 				for (int i : new int[]{0,1,3,4}) {
 					String curr = ngrams[i].toLowerCase();
 					
 					if (!stopWords.contains(curr)) {
-						word.set(mid + "," + curr);
-						context.write(word, occurrences);
+						wordPair.setNeighbor(curr);
+						context.write(wordPair, occurrences);
 					}
 				}
 				
 			}
 		}
 	      
-	          
 
-
-
-	public static class IntSumReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
+	public static class IntSumReducer extends Reducer<WordPair,IntWritable,Text,IntWritable> {
 		private IntWritable result = new IntWritable();
-
-		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+		private Text textKey = new Text();
+		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 			int sum = 0;
 			for (IntWritable val : values) {
 				sum += val.get();
 			}
 			result.set(sum);
-			context.write(key, result);
+			textKey.set(keyPair.getWord() + "," + keyPair.getNeighbor());
+			context.write(textKey, result);
 		}
 	}
-
-
-
 
 
 	public static void main(String[] args) throws Exception {
@@ -123,10 +118,10 @@ public class WordCount {
 		job.setJarByClass(WordCount.class);
 		
 		job.setMapperClass(TokenizerMapper.class);
-		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputKeyClass(WordPair.class);
 		job.setMapOutputValueClass(IntWritable.class);
 		
-		job.setCombinerClass(IntSumReducer.class);
+		//job.setCombinerClass(IntSumReducer.class);
 		job.setReducerClass(IntSumReducer.class);
 
 		
@@ -145,9 +140,10 @@ public class WordCount {
 	  			 e.printStackTrace();
 	  		 }
 	  		 logger = Logger.getLogger("");
-	  		logFile.setFormatter(new SimpleFormatter());
+	  		 logFile.setFormatter(new SimpleFormatter());
 	  		 logger.addHandler(logFile);
 	  		 logger.setLevel(Level.FINER);
 	  		 }
+	  
 	
 }
