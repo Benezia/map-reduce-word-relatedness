@@ -12,9 +12,7 @@ import java.util.logging.SimpleFormatter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -27,9 +25,8 @@ public class WordCount {
 	private static FileHandler logFile;
 	private static Logger logger;
 
-	public static class TokenizerMapper extends Mapper<Object, Text, Text, MapWritable> {
+	public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable> {
 		Set<String> stopWords = new HashSet<String>();
-		private MapWritable occurrenceMap = new MapWritable();
 		private Text word = new Text();
 		
         @Override
@@ -78,55 +75,23 @@ public class WordCount {
 				return;
 
 	          word.set(mid);
-	          occurrenceMap.clear();
-
-			for (int j : new int[]{0,1,3,4}) {
-				String curr = ngrams[j].toLowerCase();
-                Text neighbor = new Text(curr);
-                if (!stopWords.contains(curr)) {
-	                if(occurrenceMap.containsKey(neighbor)) {
-	                   IntWritable count = (IntWritable)occurrenceMap.get(neighbor);
-	                   count.set(count.get()+occurrences.get());
-	                } else 
-	                   occurrenceMap.put(neighbor,occurrences);
-                }
-	        }
-			context.write(word,occurrenceMap);
-	     }
-   }
-
-
-	
-
-public static class StripesReducer extends Reducer<Text, MapWritable, Text, IntWritable> {
-    private MapWritable incrementingMap = new MapWritable();
-
-    protected void reduce(Text key, Iterable<MapWritable> values, Context context) throws IOException, InterruptedException {
-    	Text word = new Text();
-        incrementingMap.clear();
-        
-        for (MapWritable mapWritable : values) {
-        	Set<Writable> neighbors = mapWritable.keySet();
-        	
-            for (Writable neighbor : neighbors) {  
-                IntWritable fromCount = (IntWritable) mapWritable.get(neighbor);
-                if (incrementingMap.containsKey(neighbor)) {
-                    IntWritable count = (IntWritable) incrementingMap.get(neighbor);
-                    count.set(count.get() + fromCount.get());
-                } else {
-                    incrementingMap.put(neighbor, fromCount);
-                	word.set(key + "," + neighbor);
-                    context.write(word, fromCount);
-                }
-            }
-        }
-        
-    }
-}
+				
+				for (int i : new int[]{0,1,3,4}) {
+					String curr = ngrams[i].toLowerCase();
+					
+					if (!stopWords.contains(curr)) {
+						word.set(mid + "," + curr);
+						context.write(word, occurrences);
+					}
+				}
+				
+			}
+		}
+	      
+	          
 
 
 
-/*
 	public static class IntSumReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
 		private IntWritable result = new IntWritable();
 
@@ -139,8 +104,6 @@ public static class StripesReducer extends Reducer<Text, MapWritable, Text, IntW
 			context.write(key, result);
 		}
 	}
-*/
-
 
 
 
@@ -161,10 +124,10 @@ public static class StripesReducer extends Reducer<Text, MapWritable, Text, IntW
 		
 		job.setMapperClass(TokenizerMapper.class);
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(MapWritable.class);
+		job.setMapOutputValueClass(IntWritable.class);
 		
-		//job.setCombinerClass(StripesReducer.class);
-		job.setReducerClass(StripesReducer.class);
+		job.setCombinerClass(IntSumReducer.class);
+		job.setReducerClass(IntSumReducer.class);
 
 		
 		job.setOutputKeyClass(Text.class);
