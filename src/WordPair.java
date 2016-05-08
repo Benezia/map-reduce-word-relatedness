@@ -19,8 +19,10 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	            this.isSum = isSum;
 	        }
 
-	        public WordPair(String word, String neighbor, BooleanWritable isSum) {
-	            this(new Text(word),new Text(neighbor), isSum);
+	        public WordPair(String word, String neighbor, boolean isSum) {
+	            this.word.set(word);
+	            this.neighbor.set(neighbor);
+	            this.isSum.set(isSum);
 	        }
 
 	        public WordPair() {
@@ -36,7 +38,10 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	                return returnVal;
 	            }
 	            if(isSum.get())
-	                return -1;
+	            	if(other.isSum.get())
+	            		return 0;
+	            	else
+	            		return -1;
 	            else if(other.isSum.get())
 	                return 1;
 	            

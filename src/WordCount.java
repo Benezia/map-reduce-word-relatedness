@@ -68,7 +68,7 @@ public class WordCount {
 			if (ngrams.length != 5 || year < 1900) 
 				return;
 			
-			logger.log(Level.FINE, value.toString());
+			//logger.log(Level.FINE, value.toString());
 
 			String mid = ngrams[2].toLowerCase();
 
@@ -83,6 +83,7 @@ public class WordCount {
 						wordPair.setNeighbor(curr);
 						wordPair.setIsSum(false);
 						context.write(wordPair, occurrences);
+						
 						wordPair.setNeighbor("*");
 						wordPair.setIsSum(true);
 						context.write(wordPair, occurrences);
