@@ -81,25 +81,38 @@ public class WordCount {
 					
 					if (!stopWords.contains(curr)) {
 						wordPair.setNeighbor(curr);
+						wordPair.setIsSum(false);
+						context.write(wordPair, occurrences);
+						wordPair.setNeighbor("*");
+						wordPair.setIsSum(true);
 						context.write(wordPair, occurrences);
 					}
 				}
 				
+				
 			}
 		}
 	      
-
+	
 	public static class IntSumReducer extends Reducer<WordPair,IntWritable,Text,IntWritable> {
 		private IntWritable result = new IntWritable();
 		private Text textKey = new Text();
 		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 			int sum = 0;
+			logger.log(Level.FINE, keyPair.toString());
+		
 			for (IntWritable val : values) {
 				sum += val.get();
 			}
 			result.set(sum);
-			textKey.set(keyPair.getWord() + "," + keyPair.getNeighbor());
-			context.write(textKey, result);
+			if (keyPair.getIsSum().get()) {
+				textKey.set("SUM: " + keyPair.getWord());
+				context.write(textKey, result);			
+			}
+			else {
+				textKey.set(keyPair.getWord() + "," + keyPair.getNeighbor());
+				context.write(textKey, result);
+			}
 		}
 	}
 
