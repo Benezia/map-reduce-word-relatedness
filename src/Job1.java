@@ -127,10 +127,11 @@ public class Job1 {
 	}
 	
 	
-	public static class Job1Reducer extends Reducer<WordPair,IntWritable,Text,IntWritable> {
+	public static class Job1Reducer extends Reducer<WordPair,IntWritable,WordPair,IntWritable> {
 		private IntWritable result = new IntWritable();
-		private Text textKey = new Text();
-
+		private int n = 0;
+		private int c1 = 0;
+		
 		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 			int sum = 0;
 		
@@ -142,17 +143,20 @@ public class Job1 {
 			}
 			result.set(sum);
 			
-			if (keyPair.getIsTotalSum().get()) {
-				textKey.set("TOTAL SUM FOR " + keyPair.getDecade() + ": ");
-				context.write(textKey, result);			
-			} 
-			else if (keyPair.getIsSum().get()) {
-				textKey.set("SUM: " + keyPair.toString());
-				context.write(textKey, result);			
+			if (keyPair.getIsTotalSum().get())  					// <*,*>
+				n = sum;
+			
+			else if (keyPair.getIsSum().get()) {					// <w,*>
+					if (keyPair.getW2().toString().equals("*"))		
+						c1 = sum;									// <w1,*>
+					else
+						context.write(keyPair, result);				// <w2,*>
 			}
-			else {
-				textKey.set(keyPair.toString());
-				context.write(textKey, result);
+			
+			else  {													// <w1,w2>
+					keyPair.setN(n);
+					keyPair.setC1(c1);
+					context.write(keyPair, result);
 			}
 		}
 	}

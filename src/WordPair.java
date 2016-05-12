@@ -15,8 +15,8 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        private IntWritable decade;
 	        private BooleanWritable isSum;
 	        private BooleanWritable isTotalSum;
-	        private IntWritable s1;
-	        private IntWritable s2;
+	        private IntWritable c1;
+	        private IntWritable c2;
 	        private IntWritable n;
 	        
 	        
@@ -25,8 +25,8 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	            this.w2 = new Text();
 	            this.isSum = new BooleanWritable(false);
 	            this.isTotalSum = new BooleanWritable(false);
-	            this.s1 = new IntWritable(0);
-	            this.s2 = new IntWritable(0);
+	            this.c1 = new IntWritable(0);
+	            this.c2 = new IntWritable(0);
 	            this.n = new IntWritable(0);
 	            this.decade = new IntWritable(0);
 	        }
@@ -103,8 +103,8 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	            decade.write(out);
 	            isSum.write(out);
 	            isTotalSum.write(out);
-	            s1.write(out);
-	            s2.write(out);
+	            c1.write(out);
+	            c2.write(out);
 	            n.write(out);
 	        }
 
@@ -115,8 +115,8 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	            decade.readFields(in);
 	            isSum.readFields(in);
 	            isTotalSum.readFields(in);
-	            s1.readFields(in);
-	            s2.readFields(in);
+	            c1.readFields(in);
+	            c2.readFields(in);
 	            n.readFields(in);          
 	        }
 
@@ -129,8 +129,12 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        	if (isSum.get() && w2.toString().equals("**"))
 		            return "w2=["+w1+"]";
 	        	
-	            return "w1=["+w1+"]"+
-	                   " w2=["+w2+"]";
+	            return "Decade=["+decade+"]" +
+	            		" w1=["+w1+"]"+
+	            		" w2=["+w2+"]"+
+	            		" c1=["+c1+"]"+
+	            		" c2=["+c2+"]"+
+	            		" n=["+n+"]";
 	        }
 
 	        @Override
@@ -150,8 +154,8 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        public int hashCode() {
 	            int result = w1 != null ? w1.hashCode() : 0;
 	            result += isSum.hashCode() * 191;
-	            result += s1.hashCode() * 193;
-	            result += s2.hashCode() * 197;
+	            result += c1.hashCode() * 193;
+	            result += c2.hashCode() * 197;
 	            result += n.hashCode() * 199;
 	            result += decade.hashCode() * 211;
 	            result += isTotalSum.hashCode() * 223;
@@ -164,8 +168,8 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        public void setDecade (int decade) {this.decade.set (decade -(decade % 10)); }
 	        public void setIsSum(boolean isSum) { this.isSum.set(isSum); }
 	        public void setIsTotalSum(boolean isTotalSum) { this.isTotalSum.set(isTotalSum); }
-	        public void setS1(int s1) { this.s1.set(s1); }
-	        public void setS2(int s2) { this.s2.set(s2); }
+	        public void setC1(int c1) { this.c1.set(c1); }
+	        public void setC2(int c2) { this.c2.set(c2); }
 	        public void setN(int n) { this.n.set(n); }
 	        
 	        public Text getW1() { return w1; }
@@ -173,8 +177,8 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        public IntWritable getDecade() { return decade; }
 	        public BooleanWritable getIsSum() { return isSum; }
 	        public BooleanWritable getIsTotalSum() { return isTotalSum; }
-	        public IntWritable getS1() { return s1; }
-	        public IntWritable getS2() { return s2; }
+	        public IntWritable getC1() { return c1; }
+	        public IntWritable getC2() { return c2; }
 	        public IntWritable getM() { return n; }
 	        
 }
