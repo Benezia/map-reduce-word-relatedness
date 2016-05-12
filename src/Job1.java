@@ -104,6 +104,20 @@ public class Job1 {
 				
 			}
 		}
+	
+	public static class Job1Combiner extends Reducer<WordPair,IntWritable,WordPair,IntWritable> {
+		private IntWritable result = new IntWritable();
+		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+	          int sum = 0;
+	          for (IntWritable val : values) 
+	             sum += val.get();      
+	          result.set(sum);
+	          context.write(keyPair, result);
+       }
+	}
+
+		
+	
 	      
 	public static class Job1Partitioner extends Partitioner<WordPair, IntWritable> {
 		@Override
@@ -160,7 +174,7 @@ public class Job1 {
 		job.setMapperClass(Job1Mapper.class);
 		job.setMapOutputKeyClass(WordPair.class);
 		job.setMapOutputValueClass(IntWritable.class);
-		//job.setCombinerClass(Job1Reducer.class);
+		job.setCombinerClass(Job1Combiner.class);
 		
 		job.setNumReduceTasks(11);
 		job.setPartitionerClass(Job1Partitioner.class);
