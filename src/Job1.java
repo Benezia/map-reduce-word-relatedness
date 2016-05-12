@@ -15,18 +15,19 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 
-public class WordCount {
+public class Job1 {
 	final static String STOP_WORDS_FILE = "wc.stopwords.file";
 	private static FileHandler logFile;
 	private static Logger logger;
 
     
-	public static class TokenizerMapper extends Mapper<Object, Text, WordPair, IntWritable> {
+	public static class Job1Mapper extends Mapper<Object, Text, WordPair, IntWritable> {
 		Set<String> stopWords = new HashSet<String>();
 	    private WordPair wordPair = new WordPair();
 
@@ -35,7 +36,7 @@ public class WordCount {
             Configuration conf = context.getConfiguration();
             String stp_file_name = conf.get(STOP_WORDS_FILE);
             try {
-	            InputStream res = WordCount.class.getResourceAsStream(stp_file_name);
+	            InputStream res = Job1.class.getResourceAsStream(stp_file_name);
 	
 	    	    BufferedReader fis = new BufferedReader(new InputStreamReader(res));
 
@@ -74,19 +75,29 @@ public class WordCount {
 
 			if(stopWords.contains(mid))
 				return;
-			wordPair.setWord(mid);
+			wordPair.setW1(mid);
+			wordPair.setDecade(year);
 				
 				for (int i : new int[]{0,1,3,4}) {
-					String curr = ngrams[i].toLowerCase();
-					
+					String curr = ngrams[i].toLowerCase();	
 					if (!stopWords.contains(curr)) {
-						wordPair.setNeighbor(curr);
-						wordPair.setIsSum(false);
-						context.write(wordPair, occurrences);
+						wordPair.setW2(curr);
+						wordPair.setIsTotalSum(false);
+						context.write(wordPair, occurrences); //add <w1,w2>
 						
-						wordPair.setNeighbor("*");
+						wordPair.setW2("*");
 						wordPair.setIsSum(true);
-						context.write(wordPair, occurrences);
+						context.write(wordPair, occurrences); //add <w1,*>
+						
+						wordPair.setW1(curr);
+						wordPair.setW2("**");
+						context.write(wordPair, occurrences); //add <w2,**>	
+						
+						wordPair.setW1("*");
+						wordPair.setW2("*");
+						wordPair.setIsSum(false);
+						wordPair.setIsTotalSum(true);
+						context.write(wordPair, occurrences); //add <*,*>
 					}
 				}
 				
@@ -94,56 +105,75 @@ public class WordCount {
 			}
 		}
 	      
+	public static class Job1Partitioner extends Partitioner<WordPair, IntWritable> {
+		@Override
+		public int getPartition(WordPair key, IntWritable value, int numPartitions) {
+			return key.getDecade().get() % numPartitions;
+		}
+	}
 	
-	public static class IntSumReducer extends Reducer<WordPair,IntWritable,Text,IntWritable> {
+	
+	public static class Job1Reducer extends Reducer<WordPair,IntWritable,Text,IntWritable> {
 		private IntWritable result = new IntWritable();
 		private Text textKey = new Text();
+
 		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 			int sum = 0;
-			logger.log(Level.FINE, keyPair.toString());
 		
+			logger.log(Level.FINE, keyPair.toString());
+			
+			
 			for (IntWritable val : values) {
 				sum += val.get();
 			}
 			result.set(sum);
-			if (keyPair.getIsSum().get()) {
-				textKey.set("SUM: " + keyPair.getWord());
+			
+			if (keyPair.getIsTotalSum().get()) {
+				textKey.set("TOTAL SUM FOR " + keyPair.getDecade() + ": ");
+				context.write(textKey, result);			
+			} 
+			else if (keyPair.getIsSum().get()) {
+				textKey.set("SUM: " + keyPair.toString());
 				context.write(textKey, result);			
 			}
 			else {
-				textKey.set(keyPair.getWord() + "," + keyPair.getNeighbor());
+				textKey.set(keyPair.toString());
 				context.write(textKey, result);
 			}
 		}
 	}
 
 
-	public static void main(String[] args) throws Exception {
-		WordCount.initLogFile();
+	public static Job activate(String input, String output) throws Exception {
+		Job1.initLogFile();
 
 		Configuration conf = new Configuration();
-		Job job = Job.getInstance(conf, "word count");
+		Job job = Job.getInstance(conf, "Job1");
 
 		// For binary input
 		job.setInputFormatClass(SequenceFileInputFormat.class); 
 		
 		job.getConfiguration().set(STOP_WORDS_FILE, "stop_words.txt");
 		
-		job.setJarByClass(WordCount.class);
+		job.setJarByClass(Job1.class);
 		
-		job.setMapperClass(TokenizerMapper.class);
+		job.setMapperClass(Job1Mapper.class);
 		job.setMapOutputKeyClass(WordPair.class);
 		job.setMapOutputValueClass(IntWritable.class);
+		//job.setCombinerClass(Job1Reducer.class);
 		
-		//job.setCombinerClass(IntSumReducer.class);
-		job.setReducerClass(IntSumReducer.class);
+		job.setNumReduceTasks(11);
+		job.setPartitionerClass(Job1Partitioner.class);
+
+		
+		job.setReducerClass(Job1Reducer.class);
 
 		
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
-		FileInputFormat.addInputPath(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
-		System.exit(job.waitForCompletion(true) ? 0 : 1);
+		FileInputFormat.addInputPath(job, new Path(input));
+		FileOutputFormat.setOutputPath(job, new Path(output));
+		return job;
 	}
 
 	
