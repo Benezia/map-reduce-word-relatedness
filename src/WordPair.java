@@ -3,49 +3,89 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import org.apache.hadoop.io.BooleanWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
 
 
 public class WordPair implements Writable,WritableComparable<WordPair> {
-	        private Text word;
-	        private Text neighbor;
+	        private Text w1;
+	        private Text w2;
+	        private IntWritable decade;
 	        private BooleanWritable isSum;
+	        private BooleanWritable isTotalSum;
+	        private IntWritable c1;
+	        private IntWritable c2;
+	        private IntWritable n;
 	        
-	        public WordPair(Text word, Text neighbor, BooleanWritable isSum) {
-	            this.word = word;
-	            this.neighbor = neighbor;
-	            this.isSum = isSum;
-	        }
-
-	        public WordPair(String word, String neighbor, boolean isSum) {
-	            this.word.set(word);
-	            this.neighbor.set(neighbor);
-	            this.isSum.set(isSum);
-	        }
-
+	        
 	        public WordPair() {
-	            this.word = new Text();
-	            this.neighbor = new Text();
+	            this.w1 = new Text();
+	            this.w2 = new Text();
 	            this.isSum = new BooleanWritable(false);
+	            this.isTotalSum = new BooleanWritable(false);
+	            this.c1 = new IntWritable(0);
+	            this.c2 = new IntWritable(0);
+	            this.n = new IntWritable(0);
+	            this.decade = new IntWritable(0);
 	        }
 
 	        @Override
 	        public int compareTo(WordPair other) {
-	            int returnVal = this.word.compareTo(other.getWord());
+	        	int returnVal;
+	        	if (isTotalSum.get()) {
+	        		if (other.isTotalSum.get())
+	        			return 0; 							// 		<*,*> == <*,*> 		(1/16) 	+1
+	        		else
+	        			return -1; 							// 		<*,*> < OTHER		(4/16) 	+3
+	        	}
+	        	
+	        	if (other.isTotalSum.get()) 
+	        		return 1; 								// 		OTHER > <*,*>		(7/16) 	+3
+	        	
+	        	if (isSum.get() && w2.toString().equals("**")) {
+	        		if (other.isSum.get() && other.getW2().toString().equals("**"))
+        				return w1.compareTo(other.getW1()); // 		<w2,*> ? <w2,*>		(8/16)	+1
+        			else
+        				return 1;							// 		<w2.*> > OTHER		(10/16) +2
+	        	}
+
+	        	
+	        	if (isSum.get() && w2.toString().equals("*")) {
+	        		if (other.isSum.get() && other.getW2().toString().equals("*")) 
+	        			return w1.compareTo(other.getW1()); // 		<w1,*> ? <w1,*>		(11/16)	+1
+	        		else {
+	        			if (other.isSum.get())
+	        				return -1;						// 		<w1,*> < <w2,*> 	(12/16)	+1
+	        			else {
+	        				returnVal = w1.compareTo(other.getW1());
+	        				if (returnVal != 0)
+	        					return returnVal; //w1 != other.w1	<w1,*> ? <w1,w2> 	(12.5/16) +0.5
+	        				else
+	        					return -1;		 // w1 == other.w1	<w1,*> < <w1,w2> 	(13/16)	+0.5
+	        					
+	        			}
+	        		}
+	        	}
+	        	
+
+	        	if (other.isSum.get()) {
+	        		if (other.getW2().toString().equals("*")) {
+        				returnVal = w1.compareTo(other.getW1());
+        				if (returnVal != 0)
+        					return returnVal; 	// w1 != other.w1	<w1,w2> ? <w1,*>	(13.5/16) +0.5
+        				else	
+        					return 1;			 // w1 == other.w1	<w1,w2> > <w1,*> 	(14/16)	+0.5
+	        		}
+	        			return -1;							// 		<w1,w2> < <w2,*>	(15/16) +1
+	        	}        	
+	        	
+	            returnVal = this.w1.compareTo(other.getW1());
 	            if(returnVal != 0) {
-	                return returnVal;
+	                return returnVal;						
 	            }
-	            if(isSum.get())
-	            	if(other.isSum.get())
-	            		return 0;
-	            	else
-	            		return -1;
-	            else if(other.isSum.get())
-	                return 1;
-	            
-	            return this.neighbor.compareTo(other.getNeighbor());
+	            return this.w2.compareTo(other.getW2());	// 		<w1,w2> ? <w1,w2>	(16/16) +1
 	        }
 
 
@@ -58,25 +98,43 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 
 	        @Override
 	        public void write(DataOutput out) throws IOException {
-	            word.write(out);
-	            neighbor.write(out);
+	            w1.write(out);
+	            w2.write(out);
+	            decade.write(out);
 	            isSum.write(out);
+	            isTotalSum.write(out);
+	            c1.write(out);
+	            c2.write(out);
+	            n.write(out);
 	        }
 
 	        @Override
 	        public void readFields(DataInput in) throws IOException {
-	            word.readFields(in);
-	            neighbor.readFields(in);
+	            w1.readFields(in);
+	            w2.readFields(in);
+	            decade.readFields(in);
 	            isSum.readFields(in);
+	            isTotalSum.readFields(in);
+	            c1.readFields(in);
+	            c2.readFields(in);
+	            n.readFields(in);          
 	        }
 
 	        @Override
 	        public String toString() {
-	        	if (isSum.get())
-		            return "{word=["+word+"]}";
-	        	else
-		            return "{word=["+word+"]"+
-		                   " neighbor=["+neighbor+"]}";
+	        	if (isTotalSum.get())
+	        		return "{}";
+	        	if (isSum.get() && w2.toString().equals("*"))
+		            return "w1=["+w1+"]";
+	        	if (isSum.get() && w2.toString().equals("**"))
+		            return "w2=["+w1+"]";
+	        	
+	            return "Decade=["+decade+"]" +
+	            		" w1=["+w1+"]"+
+	            		" w2=["+w2+"]"+
+	            		" c1=["+c1+"]"+
+	            		" c2=["+c2+"]"+
+	            		" n=["+n+"]";
 	        }
 
 	        @Override
@@ -86,40 +144,41 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 
 	            WordPair wordPair = (WordPair) o;
 
-	            if (neighbor != null ? !(neighbor.equals(wordPair.neighbor)) : wordPair.neighbor != null) return false;
-	            if (word != null ? !word.equals(wordPair.word) : wordPair.word != null) return false;
+	            if (w2 != null ? !(w2.equals(wordPair.w2)) : wordPair.w2 != null) return false;
+	            if (w1 != null ? !w1.equals(wordPair.w1) : wordPair.w1 != null) return false;
 
-	            return (isSum.get() == true && wordPair.isSum.get() == true);
+	            return (isSum.get() == wordPair.isSum.get());
 	        }
 
 	        @Override
 	        public int hashCode() {
-	            int result = word != null ? word.hashCode() : 0;
-	            result += isSum.hashCode();
-	            result = 389 * result + (neighbor != null ? neighbor.hashCode() : 0);
+	            int result = w1 != null ? w1.hashCode() : 0;
+	            result += isSum.hashCode() * 191;
+	            result += c1.hashCode() * 193;
+	            result += c2.hashCode() * 197;
+	            result += n.hashCode() * 199;
+	            result += decade.hashCode() * 211;
+	            result += isTotalSum.hashCode() * 223;
+	            result = result + (w2 != null ? w2.hashCode() : 0) * 229;
 	            return result;
 	        }
 
-	        public void setWord(String word){
-	            this.word.set(word);
-	        }
-	        public void setNeighbor(String neighbor){
-	            this.neighbor.set(neighbor);
-	        }
+	        public void setW1(String w1) { this.w1.set(w1); }
+	        public void setW2(String w2) { this.w2.set(w2); }
+	        public void setDecade (int decade) {this.decade.set (decade -(decade % 10)); }
+	        public void setIsSum(boolean isSum) { this.isSum.set(isSum); }
+	        public void setIsTotalSum(boolean isTotalSum) { this.isTotalSum.set(isTotalSum); }
+	        public void setC1(int c1) { this.c1.set(c1); }
+	        public void setC2(int c2) { this.c2.set(c2); }
+	        public void setN(int n) { this.n.set(n); }
 	        
-	        public void setIsSum(boolean isSum){
-	            this.isSum.set(isSum);
-	        }
+	        public Text getW1() { return w1; }
+	        public Text getW2() { return w2; }
+	        public IntWritable getDecade() { return decade; }
+	        public BooleanWritable getIsSum() { return isSum; }
+	        public BooleanWritable getIsTotalSum() { return isTotalSum; }
+	        public IntWritable getC1() { return c1; }
+	        public IntWritable getC2() { return c2; }
+	        public IntWritable getM() { return n; }
 	        
-	        public Text getWord() {
-	            return word;
-	        }
-
-	        public Text getNeighbor() {
-	            return neighbor;
-	        }
-	        
-	        public BooleanWritable getIsSum() {
-	            return isSum;
-	        }
 }
