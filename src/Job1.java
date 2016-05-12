@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 
 public class Job1 {
@@ -186,8 +187,8 @@ public class Job1 {
 		
 		job.setReducerClass(Job1Reducer.class);
 
-		
-		job.setOutputKeyClass(Text.class);
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+		job.setOutputKeyClass(WordPair.class);
 		job.setOutputValueClass(IntWritable.class);
 		FileInputFormat.addInputPath(job, new Path(input));
 		FileOutputFormat.setOutputPath(job, new Path(output));
