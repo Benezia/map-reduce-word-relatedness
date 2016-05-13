@@ -18,8 +18,7 @@ public class LimitedTreeSet extends TreeSet<Node<?>> {
 			super.pollFirst();
 		
 		return res;
-	}
-		
+	}	
 }
 
 

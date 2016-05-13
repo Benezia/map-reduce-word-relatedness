@@ -4,10 +4,6 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -24,10 +20,7 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 
 public class Job1 {
 	final static String STOP_WORDS_FILE = "wc.stopwords.file";
-	private static FileHandler logFile;
-	private static Logger logger;
 
-    
 	public static class Job1Mapper extends Mapper<Object, Text, WordPair, IntWritable> {
 		Set<String> stopWords = new HashSet<String>();
 	    private WordPair wordPair = new WordPair();
@@ -70,8 +63,6 @@ public class Job1 {
 			if (ngrams.length != 5 || year < 1900) 
 				return;
 			
-			//logger.log(Level.FINE, value.toString());
-
 			String mid = ngrams[2].toLowerCase();
 
 			if(stopWords.contains(mid))
@@ -134,10 +125,7 @@ public class Job1 {
 		private int c1 = 0;
 		
 		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-			int sum = 0;
-		
-			logger.log(Level.FINE, keyPair.toString());
-			
+			int sum = 0;			
 			
 			for (IntWritable val : values) {
 				sum += val.get();
@@ -164,7 +152,6 @@ public class Job1 {
 
 
 	public static Job activate(String input, String output) throws Exception {
-		Job1.initLogFile();
 
 		Configuration conf = new Configuration();
 		Job job = Job.getInstance(conf, "Job1");
@@ -194,19 +181,6 @@ public class Job1 {
 		FileOutputFormat.setOutputPath(job, new Path(output)); /*env_var: mapred_job_id */
 		return job;
 	}
-
-	
-	  public static void initLogFile() {
-	  		 try {
-	  			 logFile = new FileHandler("logger.log", false);
-	  		 	} catch (SecurityException | IOException e) {
-	  			 e.printStackTrace();
-	  		 }
-	  		 logger = Logger.getLogger("");
-	  		 logFile.setFormatter(new SimpleFormatter());
-	  		 logger.addHandler(logFile);
-	  		 logger.setLevel(Level.FINER);
-	  		 }
 	  
 	
 }

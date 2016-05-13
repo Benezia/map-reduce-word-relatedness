@@ -97,12 +97,13 @@ public class Job2 {
 		}
 	}
 	
+
 	
 public static class Job2OutputFormat extends FileOutputFormat<LimitedTreeSet, IntWritable> {
   @Override
   public Job2RecordWriter getRecordWriter(TaskAttemptContext arg0) throws IOException, InterruptedException {
      Path path = FileOutputFormat.getOutputPath(arg0);
-     Path fullPath = new Path(path, "result.txt");
+     Path fullPath = new Path(path, "result" + arg0.getTaskAttemptID().getTaskID().getId());
      FileSystem fs = path.getFileSystem(arg0.getConfiguration());
      FSDataOutputStream fileOut = fs.create(fullPath, arg0);
      return new Job2RecordWriter(fileOut);
@@ -148,8 +149,8 @@ public static class Job2RecordWriter extends RecordWriter<LimitedTreeSet, IntWri
 		Node node;
     	double stat;
     	WordPair pair;
-    	
-    	for (int i=1; i<=tree.size(); i++) {
+    	int treesize = tree.size();
+    	for (int i=1; i<=treesize; i++) {
     		node = tree.pollLast();
     		stat = node.statistic;
     		pair = (WordPair)node.value;
