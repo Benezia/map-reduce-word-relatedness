@@ -12,10 +12,9 @@ public class JobHandler extends Configured implements Tool {
 
 	 
 		public static void main (String args[]) throws Exception {
-			int k = 0;
 			if (args.length > 0) {
 			    try {
-			        k = Integer.parseInt(args[2]);
+			        Integer.parseInt(args[2]);
 			    } catch (NumberFormatException e) {
 			        System.err.println("Argument" + args[2] + " must be an integer.");
 			        System.exit(1);
