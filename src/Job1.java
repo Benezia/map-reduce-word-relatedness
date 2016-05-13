@@ -57,6 +57,9 @@ public class Job1 {
 			 pages  		(dataRow[3]) - The number of pages this n-gram appeared on in this year
 			 books 			(dataRow[4]) - The number of books this n-gram appeared in during this year
 			*/
+			if (dataRow.length != 5)
+				return;
+			
 			occurrences.set(Integer.parseInt(dataRow[2]));
 			int year = Integer.parseInt(dataRow[1]);
 			String[] ngrams = dataRow[0].split("\\s+");

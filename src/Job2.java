@@ -78,7 +78,7 @@ public class Job2 {
 				
 				//Calculate Probabilities:
 				joint = (double)sum/(double)(keyPair.getN().get());
-				dice = (double)(2*sum)/(double)(keyPair.getC1().get() + keyPair.getC1().get());
+				dice = (double)(2*sum)/(double)(keyPair.getC1().get() + keyPair.getC2().get());
 				geometric = Math.sqrt(joint*dice);
 				
 				//add to treeset:
@@ -148,13 +148,16 @@ public static class Job2RecordWriter extends RecordWriter<LimitedTreeSet, IntWri
 		Node<WordPair> node;
     	double stat;
     	WordPair pair;
-    	int treesize = tree.size();
-    	for (int i=1; i<=treesize; i++) {
+
+    	int i = 1;
+    	while (!tree.isEmpty()) {
     		node = (Node<WordPair>) tree.pollLast();
     		stat = node.statistic;
     		pair = (WordPair)node.value;
 	    	out.writeBytes(i+". " + pair.toString() + ": \t" + stat + "\n");
+	    	i++;
     	}
+    	
     	out.writeBytes("\n");
     	
     }
