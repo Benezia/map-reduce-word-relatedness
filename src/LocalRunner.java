@@ -4,10 +4,9 @@ import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-
 	
 
-public class JobHandler extends Configured implements Tool {
+public class LocalRunner extends Configured implements Tool {
 	 private static final String OUTPUT_PATH = "intermediate_output";
 
 	 
@@ -24,7 +23,7 @@ public class JobHandler extends Configured implements Tool {
 				System.exit(1);
 			}
 			
-			ToolRunner.run(new Configuration(), new JobHandler(), args);
+			ToolRunner.run(new Configuration(), new LocalRunner(), args);
 		}
 			
 			
