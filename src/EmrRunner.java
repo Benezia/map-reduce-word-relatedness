@@ -16,6 +16,8 @@ import com.amazonaws.services.elasticmapreduce.model.StepConfig;
 
 
 public class EmrRunner {
+	private static final String INTERMEDIATE_PATH = "hdfs:///intermediate/" /*output*/;
+	private static final String S3_JAR = "s3n://dsps161-ass2-binaries/WordRelatedness.jar";
 	private static final String PLACEMENT_TYPE = "us-west-2a";
 	private static final String HADOOP_VER = "2.7.2";
 	private static final String ACTION_ON_FAIL = "TERMINATE_JOB_FLOW";
@@ -35,16 +37,28 @@ public class EmrRunner {
 		
 		mapReduce.setEndpoint(ENDPOINT);
 		 
-		HadoopJarStepConfig hadoopJarStep = new HadoopJarStepConfig()
-		    .withJar("s3n://dsps161-ass2-binaries/WordCount.jar") // This should be a full map reduce application.
-		    .withMainClass("WordCount")
+		HadoopJarStepConfig JarStep1 = new HadoopJarStepConfig()
+		    .withJar(S3_JAR) // This should be a full map reduce application.
+		    .withMainClass("Step1")
 		    .withArgs("s3n://dsp112/eng.corp.10k" /*input*/, 
+		    		INTERMEDIATE_PATH, 
+		    		String.valueOf(k));
+		
+		HadoopJarStepConfig JarStep2 = new HadoopJarStepConfig()
+		    .withJar(S3_JAR) // This should be a full map reduce application.
+		    .withMainClass("Step2")
+		    .withArgs(INTERMEDIATE_PATH, 
 		    		"s3n://dsps161-ass2-output/output" /*output*/, 
 		    		String.valueOf(k));
 		 
-		StepConfig stepConfig = new StepConfig()
-		    .withName("test step")
-		    .withHadoopJarStep(hadoopJarStep)
+		StepConfig step1Config = new StepConfig()
+		    .withName("Step1")
+		    .withHadoopJarStep(JarStep1)
+		    .withActionOnFailure(ACTION_ON_FAIL);
+		
+		StepConfig step2Config = new StepConfig()
+		    .withName("Step2")
+		    .withHadoopJarStep(JarStep2)
 		    .withActionOnFailure(ACTION_ON_FAIL);
 		 
 		JobFlowInstancesConfig instances = new JobFlowInstancesConfig()
@@ -57,9 +71,9 @@ public class EmrRunner {
 		    .withPlacement(new PlacementType(PLACEMENT_TYPE));
 		 
 		RunJobFlowRequest runFlowRequest = new RunJobFlowRequest()
-		    .withName("test job")
+		    .withName("Word Relatedness")
 		    .withInstances(instances)
-		    .withSteps(stepConfig)
+		    .withSteps(step1Config, step2Config)
 		    .withJobFlowRole("EMR_EC2_DefaultRole")
 		    .withServiceRole("EMR_DefaultRole")
 		    .withReleaseLabel("emr-4.6.0")
@@ -77,7 +91,7 @@ public class EmrRunner {
 		
 		runEmrJob(Integer.valueOf(args[0]));
 		
-		System.out.println("Finished.");
+		System.out.println("Job Submitted. See EMR Console.");
 	}
 
 }

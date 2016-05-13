@@ -190,8 +190,8 @@ public class Job1 {
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		job.setOutputKeyClass(WordPair.class);
 		job.setOutputValueClass(IntWritable.class);
-		FileInputFormat.addInputPath(job, new Path(input));
-		FileOutputFormat.setOutputPath(job, new Path(output));
+		FileInputFormat.addInputPath(job, new Path(input)); 
+		FileOutputFormat.setOutputPath(job, new Path(output)); /*env_var: mapred_job_id */
 		return job;
 	}
 
