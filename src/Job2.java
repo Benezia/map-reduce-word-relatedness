@@ -83,7 +83,6 @@ public class Job2 {
 				
 				//add to treeset:
 				WordPair copy = new WordPair(keyPair);
-				System.out.println(copy.toString());
 				jointTree.add(new Node<WordPair>(joint, copy));
 				diceTree.add(new Node<WordPair>(dice, copy));
 				geometricTree.add(new Node<WordPair>(geometric, copy));
