@@ -19,18 +19,7 @@ public class LimitedTreeSet extends TreeSet<Node<?>> {
 		
 		return res;
 	}
-	
-	// quick test
-	public static void main(String[] args) {
-		LimitedTreeSet t = new LimitedTreeSet(10);
 		
-		for (int i = 20; i > 0; i--) {
-			t.add(new Node<String>(0.1*i, "SOME PAYLOAD"));
-		}
-		
-		System.out.println(t);
-	}
-	
 }
 
 

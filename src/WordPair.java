@@ -30,6 +30,17 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	            this.n = new IntWritable(0);
 	            this.decade = new IntWritable(0);
 	        }
+	        
+	        public WordPair (WordPair other) {
+	            w1.set(other.getW1().toString());
+	            w2.set(other.getW2().toString());
+	            isSum.set(other.getIsSum().get());
+	            isTotalSum.set(other.getIsTotalSum().get());
+	            c1.set(other.getC1().get());
+	            c2.set(other.getC2().get());
+	            n.set(other.getN().get());
+	            decade.set(other.getDecade().get());
+	        }
 
 	        @Override
 	        public int compareTo(WordPair other) {
@@ -129,12 +140,7 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        	if (isSum.get() && w2.toString().equals("**"))
 		            return "w2=["+w1+"]";
 	        	
-	            return "Decade=["+decade+"]" +
-	            		" w1=["+w1+"]"+
-	            		" w2=["+w2+"]"+
-	            		" c1=["+c1+"]"+
-	            		" c2=["+c2+"]"+
-	            		" n=["+n+"]";
+	            return "<" + w1 + "," + w2 + ">";
 	        }
 
 	        @Override
@@ -179,6 +185,6 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        public BooleanWritable getIsTotalSum() { return isTotalSum; }
 	        public IntWritable getC1() { return c1; }
 	        public IntWritable getC2() { return c2; }
-	        public IntWritable getM() { return n; }
+	        public IntWritable getN() { return n; }
 	        
 }
