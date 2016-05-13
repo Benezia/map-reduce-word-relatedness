@@ -92,6 +92,9 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        			return -1;							// 		<w1,w2> < <w2,*>	(15/16) +1
 	        	}        	
 	        	
+	        	if (w1.compareTo(other.getW2()) == 0 && w2.compareTo(other.getW1()) == 0) // <w1,w2> ? <w2,w1>
+	        		return 0;
+	        	
 	            returnVal = this.w1.compareTo(other.getW1());
 	            if(returnVal != 0) {
 	                return returnVal;						
@@ -140,7 +143,7 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        	if (isSum.get() && w2.toString().equals("**"))
 		            return "w2=["+w1+"]";
 	        	
-	            return "<" + w1 + "," + w2 + ">";
+	            return w1 + "," + w2;
 	        }
 
 	        @Override

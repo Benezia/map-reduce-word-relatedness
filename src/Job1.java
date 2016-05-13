@@ -25,6 +25,10 @@ public class Job1 {
 		Set<String> stopWords = new HashSet<String>();
 	    private WordPair wordPair = new WordPair();
 	    IntWritable occurrences = new IntWritable();
+	    private static final String IS_WORD_PATTERN = "^\\w+$";
+	    private static final String TAB = "\t";
+	    private static final String SPACES = "\\s+";
+	    String curr;
 
         @Override
         protected void setup(Context context) throws IOException {
@@ -47,7 +51,7 @@ public class Job1 {
         }
 
 		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-			String[] dataRow = value.toString().split("\t");
+			String[] dataRow = value.toString().split(TAB);
 
 			/*
 			 split positions:
@@ -62,39 +66,42 @@ public class Job1 {
 			
 			occurrences.set(Integer.parseInt(dataRow[2]));
 			int year = Integer.parseInt(dataRow[1]);
-			String[] ngrams = dataRow[0].split("\\s+");
+			String[] ngrams = dataRow[0].split(SPACES);
 			
 			if (ngrams.length != 5 || year < 1900) 
 				return;
 			
 			String mid = ngrams[2].toLowerCase();
-
-			if(stopWords.contains(mid))
+			
+			// clean stop words & non-words
+			if(stopWords.contains(mid) || !mid.matches(IS_WORD_PATTERN))
 				return;
-			wordPair.setW1(mid);
+			
 			wordPair.setDecade(year);
 				
 				for (int i : new int[]{0,1,3,4}) {
-					String curr = ngrams[i].toLowerCase();	
-					if (!stopWords.contains(curr)) {
-						wordPair.setW2(curr);
-						wordPair.setIsTotalSum(false);
-						context.write(wordPair, occurrences); //add <w1,w2>
-						
-						wordPair.setW2("*");
-						wordPair.setIsSum(true);
-						context.write(wordPair, occurrences); //add <w1,*>
-						
-						wordPair.setW1(curr);
-						wordPair.setW2("**");
-						context.write(wordPair, occurrences); //add <w2,**>	
-						
-						wordPair.setW1("*");
-						wordPair.setW2("*");
-						wordPair.setIsSum(false);
-						wordPair.setIsTotalSum(true);
-						context.write(wordPair, occurrences); //add <*,*>
-					}
+					curr = ngrams[i].toLowerCase();	
+					if(stopWords.contains(curr) || !curr.matches(IS_WORD_PATTERN))
+						continue;
+					
+					wordPair.setW1(mid);
+					wordPair.setW2(curr);
+					wordPair.setIsTotalSum(false);
+					context.write(wordPair, occurrences); //add <w1,w2>
+					
+					wordPair.setW2("*");
+					wordPair.setIsSum(true);
+					context.write(wordPair, occurrences); //add <w1,*>
+					
+					wordPair.setW1(curr);
+					wordPair.setW2("**");
+					context.write(wordPair, occurrences); //add <w2,**>	
+					
+					wordPair.setW1("*");
+					wordPair.setW2("*");
+					wordPair.setIsSum(false);
+					wordPair.setIsTotalSum(true);
+					context.write(wordPair, occurrences); //add <*,*>
 				}
 				
 				

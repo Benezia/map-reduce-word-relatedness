@@ -16,17 +16,18 @@ import com.amazonaws.services.elasticmapreduce.model.StepConfig;
 
 
 public class EmrRunner {
-	private static final int NUM_OF_INSTANCES = 10;
+	private static final String LOG_LOCATION = "s3n://dsps161-ass2-logs/";
+	private static final int NUM_OF_INSTANCES = 12;
 	private static final String INTERMEDIATE_PATH = "hdfs:///intermediate/" /*output*/;
 	private static final String S3_JAR = "s3n://dsps161-ass2-binaries/WordRelatedness.jar";
-	private static final String PLACEMENT_TYPE = "us-east-1a";
+	private static final String PLACEMENT_TYPE = "us-east-1b";
 	private static final String ENDPOINT = "elasticmapreduce.us-east-1.amazonaws.com";
 	private static final String HADOOP_VER = "2.7.2";
 	private static final String ACTION_ON_FAIL = "TERMINATE_JOB_FLOW";
 	private static final String CREDS_FILE = "./AwsCredentials.properties";
 	private static final String INSTANCE_TYPE = InstanceType.M1Large.toString();	
 	private static final String GOOGLE_ENG_1M = "s3://datasets.elasticmapreduce/ngrams/books/20090715/eng-1M/5gram/data";
-	private static final String TEST_CORP = "s3n://dsp112/eng.corp.10k";
+	//private static final String TEST_CORP = "s3n://dsp112/eng.corp.10k";
 	
 	public static void runEmrJob(int k) throws IllegalArgumentException, IOException {
 		File creds = new File(CREDS_FILE);
@@ -79,7 +80,7 @@ public class EmrRunner {
 		    .withJobFlowRole("EMR_EC2_DefaultRole")
 		    .withServiceRole("EMR_DefaultRole")
 		    .withReleaseLabel("emr-4.6.0")
-		    .withLogUri("s3n://dsps161-ass2-logs/");
+		    .withLogUri(LOG_LOCATION);
 		 
 		RunJobFlowResult runJobFlowResult = mapReduce.runJobFlow(runFlowRequest);
 		String jobFlowId = runJobFlowResult.getJobFlowId();
