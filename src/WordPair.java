@@ -32,14 +32,14 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        }
 	        
 	        public WordPair (WordPair other) {
-	            w1.set(other.getW1().toString());
-	            w2.set(other.getW2().toString());
-	            isSum.set(other.getIsSum().get());
-	            isTotalSum.set(other.getIsTotalSum().get());
-	            c1.set(other.getC1().get());
-	            c2.set(other.getC2().get());
-	            n.set(other.getN().get());
-	            decade.set(other.getDecade().get());
+	            w1 = new Text(other.getW1().toString());
+	            w2 = new Text(other.getW2().toString());
+	            isSum = new BooleanWritable(other.getIsSum().get());
+	            isTotalSum = new BooleanWritable(other.getIsTotalSum().get());
+	            c1 = new IntWritable(other.getC1().get());
+	            c2 = new IntWritable(other.getC2().get());
+	            n = new IntWritable(other.getN().get());
+	            decade = new IntWritable(other.getDecade().get());
 	        }
 
 	        @Override
