@@ -98,7 +98,6 @@ public class Job2 {
 	}
 	
 
-	
 public static class Job2OutputFormat extends FileOutputFormat<LimitedTreeSet, IntWritable> {
   @Override
   public Job2RecordWriter getRecordWriter(TaskAttemptContext arg0) throws IOException, InterruptedException {
@@ -123,7 +122,8 @@ public static class Job2RecordWriter extends RecordWriter<LimitedTreeSet, IntWri
         out.close();
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void write(LimitedTreeSet tree, IntWritable index) throws IOException, InterruptedException {
     	if (displayDecade) {
 	    	WordPair pair = (WordPair)tree.first().value;
@@ -145,18 +145,18 @@ public static class Job2RecordWriter extends RecordWriter<LimitedTreeSet, IntWri
 	    	out.writeBytes("ERROR \n");
     	}
     	
-    	@SuppressWarnings("rawtypes")
-		Node node;
+		Node<WordPair> node;
     	double stat;
     	WordPair pair;
     	int treesize = tree.size();
     	for (int i=1; i<=treesize; i++) {
-    		node = tree.pollLast();
+    		node = (Node<WordPair>) tree.pollLast();
     		stat = node.statistic;
     		pair = (WordPair)node.value;
 	    	out.writeBytes(i+"." + pair.toString() + ": \t" + stat + "\n");
     	}
     	out.writeBytes("\n");
+    	
     }
 }
 
@@ -187,12 +187,20 @@ public static class Job2RecordWriter extends RecordWriter<LimitedTreeSet, IntWri
 		
 		job.setOutputKeyClass(LimitedTreeSet.class);
 		job.setOutputValueClass(IntWritable.class);
+		//job.setOutputFormatClass(Job2RecordWriter.class);
 		job.setOutputFormatClass(Job2OutputFormat.class);
 		
 		
 		FileInputFormat.addInputPath(job, new Path(input));
 		FileOutputFormat.setOutputPath(job, new Path(output));
 		return job;
+	}
+	
+	public static void main (String args[]) throws Exception {
+		if (args.length != 3)
+			throw new Exception("Incorrect args");
+		
+		activate(args[0], args[1], args[2]).waitForCompletion(true);
 	}
 
 	

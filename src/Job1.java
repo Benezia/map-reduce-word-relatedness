@@ -24,6 +24,7 @@ public class Job1 {
 	public static class Job1Mapper extends Mapper<Object, Text, WordPair, IntWritable> {
 		Set<String> stopWords = new HashSet<String>();
 	    private WordPair wordPair = new WordPair();
+	    IntWritable occurrences = new IntWritable();
 
         @Override
         protected void setup(Context context) throws IOException {
@@ -56,7 +57,7 @@ public class Job1 {
 			 pages  		(dataRow[3]) - The number of pages this n-gram appeared on in this year
 			 books 			(dataRow[4]) - The number of books this n-gram appeared in during this year
 			*/
-			IntWritable occurrences = new IntWritable(Integer.parseInt(dataRow[2]));
+			occurrences.set(Integer.parseInt(dataRow[2]));
 			int year = Integer.parseInt(dataRow[1]);
 			String[] ngrams = dataRow[0].split("\\s+");
 			
@@ -125,8 +126,8 @@ public class Job1 {
 		private int c1 = 0;
 		
 		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-			int sum = 0;			
-			
+			int sum = 0;
+
 			for (IntWritable val : values) {
 				sum += val.get();
 			}
@@ -167,13 +168,9 @@ public class Job1 {
 		job.setMapOutputKeyClass(WordPair.class);
 		job.setMapOutputValueClass(IntWritable.class);
 		job.setCombinerClass(Job1Combiner.class);
-		
 		job.setNumReduceTasks(11);
 		job.setPartitionerClass(Job1Partitioner.class);
-
-		
 		job.setReducerClass(Job1Reducer.class);
-
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		job.setOutputKeyClass(WordPair.class);
 		job.setOutputValueClass(IntWritable.class);
@@ -181,6 +178,12 @@ public class Job1 {
 		FileOutputFormat.setOutputPath(job, new Path(output)); /*env_var: mapred_job_id */
 		return job;
 	}
-	  
 	
+	public static void main (String args[]) throws Exception {
+		if (args.length != 2)
+			throw new Exception("Incorrect args");
+		
+		activate(args[0], args[1]).waitForCompletion(true);
+	}
+
 }

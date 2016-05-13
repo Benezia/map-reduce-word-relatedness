@@ -39,14 +39,13 @@ public class EmrRunner {
 		 
 		HadoopJarStepConfig JarStep1 = new HadoopJarStepConfig()
 		    .withJar(S3_JAR) // This should be a full map reduce application.
-		    .withMainClass("Step1")
+		    .withMainClass("Job1")
 		    .withArgs("s3n://dsp112/eng.corp.10k" /*input*/, 
-		    		INTERMEDIATE_PATH, 
-		    		String.valueOf(k));
+		    		INTERMEDIATE_PATH);
 		
 		HadoopJarStepConfig JarStep2 = new HadoopJarStepConfig()
 		    .withJar(S3_JAR) // This should be a full map reduce application.
-		    .withMainClass("Step2")
+		    .withMainClass("Job2")
 		    .withArgs(INTERMEDIATE_PATH, 
 		    		"s3n://dsps161-ass2-output/output" /*output*/, 
 		    		String.valueOf(k));
