@@ -153,7 +153,7 @@ public static class Job2RecordWriter extends RecordWriter<LimitedTreeSet, IntWri
     		node = (Node<WordPair>) tree.pollLast();
     		stat = node.statistic;
     		pair = (WordPair)node.value;
-	    	out.writeBytes(i+"." + pair.toString() + ": \t" + stat + "\n");
+	    	out.writeBytes(i+". " + pair.toString() + ": \t" + stat + "\n");
     	}
     	out.writeBytes("\n");
     	
