@@ -28,7 +28,7 @@ public class Job1 {
 	    private static final String IS_WORD_PATTERN = "^\\w+$";
 	    private static final String TAB = "\t";
 	    private static final String SPACES = "\\s+";
-	    String curr;
+	    String curr, mid;
 
         @Override
         protected void setup(Context context) throws IOException {
@@ -80,9 +80,18 @@ public class Job1 {
 			wordPair.setDecade(year);
 				
 				for (int i : new int[]{0,1,3,4}) {
+					mid = ngrams[2].toLowerCase();
 					curr = ngrams[i].toLowerCase();	
+					
 					if(stopWords.contains(curr) || !curr.matches(IS_WORD_PATTERN))
 						continue;
+					
+					// lexic ordering of pairs
+					if (curr.compareTo(mid) < 0) {
+						String temp = curr;
+						curr = mid;
+						mid = temp;
+					}
 					
 					wordPair.setW1(mid);
 					wordPair.setW2(curr);

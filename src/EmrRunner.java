@@ -51,7 +51,7 @@ public class EmrRunner {
 		    .withJar(S3_JAR) // This should be a full map reduce application.
 		    .withMainClass("Job2")
 		    .withArgs(INTERMEDIATE_PATH, 
-		    		"s3n://dsps161-ass2-output/output_eng_1m" /*output*/, 
+		    		"s3n://dsps161-ass2-output/output_eng_1m_run4" /*output*/, 
 		    		String.valueOf(k));
 		 
 		StepConfig step1Config = new StepConfig()
