@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -21,14 +21,35 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 public class Job1 {
 	final static String STOP_WORDS_FILE = "wc.stopwords.file";
 
-	public static class Job1Mapper extends Mapper<Object, Text, WordPair, IntWritable> {
+	public static class Job1Mapper extends Mapper<Object, Text, WordPair, LongWritable> {
 		Set<String> stopWords = new HashSet<String>();
 	    private WordPair wordPair = new WordPair();
-	    IntWritable occurrences = new IntWritable();
-	    private static final String IS_WORD_PATTERN = "^\\w+$";
+	    LongWritable occurrences = new LongWritable();
+	    private static final String IS_WORD_PATTERN = "^[a-zA-Z]{2,}$";
 	    private static final String TAB = "\t";
 	    private static final String SPACES = "\\s+";
 	    String curr, mid;
+	    
+	    /*
+        private static void combineStrings(String[] arr) {
+            for (int i = 1; i<4; i++) {
+                if (arr[i].equals("'") &&
+                        arr[i+1].length() == 1 &&
+                		arr[i+1].matches(IS_WORD_PATTERN) &&
+                        !arr[i+1].equals("I")) {
+                    System.out.println(arr[0] + " " + arr[1] + " " + arr[2] + " " + arr[3] + " " + arr[4]);
+                    arr[i-1] += arr[i]+arr[i+1];
+                    while (i<3) {
+                        arr[i] = arr[i+2];
+                        i++;   
+                    }
+                    arr[3] = "";
+                    arr[4] = "";   
+                    System.out.println(arr[0] + " " + arr[1] + " " + arr[2] + " " + arr[3] + " " + arr[4]);
+                }
+            }
+           
+        }*/
 
         @Override
         protected void setup(Context context) throws IOException {
@@ -67,9 +88,11 @@ public class Job1 {
 			occurrences.set(Integer.parseInt(dataRow[2]));
 			int year = Integer.parseInt(dataRow[1]);
 			String[] ngrams = dataRow[0].split(SPACES);
-			
+
 			if (ngrams.length != 5 || year < 1900) 
 				return;
+			
+			//combineStrings(ngrams);
 			
 			String mid = ngrams[2].toLowerCase();
 			
@@ -79,49 +102,49 @@ public class Job1 {
 			
 			wordPair.setDecade(year);
 				
-				for (int i : new int[]{0,1,3,4}) {
-					mid = ngrams[2].toLowerCase();
-					curr = ngrams[i].toLowerCase();	
-					
-					if(stopWords.contains(curr) || !curr.matches(IS_WORD_PATTERN))
-						continue;
-					
-					// lexic ordering of pairs
-					if (curr.compareTo(mid) < 0) {
-						String temp = curr;
-						curr = mid;
-						mid = temp;
-					}
-					
-					wordPair.setW1(mid);
-					wordPair.setW2(curr);
-					wordPair.setIsTotalSum(false);
-					context.write(wordPair, occurrences); //add <w1,w2>
-					
-					wordPair.setW2("*");
-					wordPair.setIsSum(true);
-					context.write(wordPair, occurrences); //add <w1,*>
-					
-					wordPair.setW1(curr);
-					wordPair.setW2("**");
-					context.write(wordPair, occurrences); //add <w2,**>	
-					
-					wordPair.setW1("*");
-					wordPair.setW2("*");
-					wordPair.setIsSum(false);
-					wordPair.setIsTotalSum(true);
-					context.write(wordPair, occurrences); //add <*,*>
+			for (int i : new int[]{0,1,3,4}) {
+				mid = ngrams[2].toLowerCase();
+				curr = ngrams[i].toLowerCase();	
+				
+				if(stopWords.contains(curr) || !curr.matches(IS_WORD_PATTERN))
+					continue;
+				
+				// lexic ordering of pairs
+				if (curr.compareTo(mid) < 0) {
+					String temp = curr;
+					curr = mid;
+					mid = temp;
 				}
+				
+				wordPair.setW1(mid);
+				wordPair.setW2(curr);
+				wordPair.setIsTotalSum(false);
+				context.write(wordPair, occurrences); //add <w1,w2>
+				
+				wordPair.setW2("*");
+				wordPair.setIsSum(true);
+				context.write(wordPair, occurrences); //add <w1,*>
+				
+				wordPair.setW1(curr);
+				wordPair.setW2("**");
+				context.write(wordPair, occurrences); //add <w2,**>	
+				
+				wordPair.setW1("*");
+				wordPair.setW2("*");
+				wordPair.setIsSum(false);
+				wordPair.setIsTotalSum(true);
+				context.write(wordPair, occurrences); //add <*,*>
+			}
 				
 				
 			}
 		}
 	
-	public static class Job1Combiner extends Reducer<WordPair,IntWritable,WordPair,IntWritable> {
-		private IntWritable result = new IntWritable();
-		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-	          int sum = 0;
-	          for (IntWritable val : values) 
+	public static class Job1Combiner extends Reducer<WordPair,LongWritable,WordPair,LongWritable> {
+		private LongWritable result = new LongWritable();
+		public void reduce(WordPair keyPair, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+	          long sum = 0;
+	          for (LongWritable val : values) 
 	             sum += val.get();      
 	          result.set(sum);
 	          context.write(keyPair, result);
@@ -131,23 +154,23 @@ public class Job1 {
 		
 	
 	      
-	public static class Job1Partitioner extends Partitioner<WordPair, IntWritable> {
+	public static class Job1Partitioner extends Partitioner<WordPair, LongWritable> {
 		@Override
-		public int getPartition(WordPair key, IntWritable value, int numPartitions) {
+		public int getPartition(WordPair key, LongWritable value, int numPartitions) {
 			return key.getDecade().get() % numPartitions;
 		}
 	}
 	
 	
-	public static class Job1Reducer extends Reducer<WordPair,IntWritable,WordPair,IntWritable> {
-		private IntWritable result = new IntWritable();
-		private int n = 0;
-		private int c1 = 0;
+	public static class Job1Reducer extends Reducer<WordPair,LongWritable,WordPair,LongWritable> {
+		private LongWritable result = new LongWritable();
+		private long n = 0;
+		private long c1 = 0;
 		
-		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-			int sum = 0;
+		public void reduce(WordPair keyPair, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+			long sum = 0;
 
-			for (IntWritable val : values) {
+			for (LongWritable val : values) {
 				sum += val.get();
 			}
 			result.set(sum);
@@ -185,14 +208,14 @@ public class Job1 {
 		
 		job.setMapperClass(Job1Mapper.class);
 		job.setMapOutputKeyClass(WordPair.class);
-		job.setMapOutputValueClass(IntWritable.class);
+		job.setMapOutputValueClass(LongWritable.class);
 		job.setCombinerClass(Job1Combiner.class);
 		job.setNumReduceTasks(11);
 		job.setPartitionerClass(Job1Partitioner.class);
 		job.setReducerClass(Job1Reducer.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		job.setOutputKeyClass(WordPair.class);
-		job.setOutputValueClass(IntWritable.class);
+		job.setOutputValueClass(LongWritable.class);
 		FileInputFormat.addInputPath(job, new Path(input)); 
 		FileOutputFormat.setOutputPath(job, new Path(output)); /*env_var: mapred_job_id */
 		return job;

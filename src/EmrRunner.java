@@ -17,7 +17,7 @@ import com.amazonaws.services.elasticmapreduce.model.StepConfig;
 
 public class EmrRunner {
 	private static final String LOG_LOCATION = "s3n://dsps161-ass2-logs/";
-	private static final int NUM_OF_INSTANCES = 12;
+	private static final int NUM_OF_INSTANCES = 20;
 	private static final String INTERMEDIATE_PATH = "hdfs:///intermediate/" /*output*/;
 	private static final String S3_JAR = "s3n://dsps161-ass2-binaries/WordRelatedness.jar";
 	private static final String PLACEMENT_TYPE = "us-east-1b";
@@ -26,7 +26,8 @@ public class EmrRunner {
 	private static final String ACTION_ON_FAIL = "TERMINATE_JOB_FLOW";
 	private static final String CREDS_FILE = "./AwsCredentials.properties";
 	private static final String INSTANCE_TYPE = InstanceType.M1Large.toString();	
-	private static final String GOOGLE_ENG_1M = "s3://datasets.elasticmapreduce/ngrams/books/20090715/eng-1M/5gram/data";
+	//private static final String CORPUS = "s3://datasets.elasticmapreduce/ngrams/books/20090715/eng-1M/5gram/data";
+	private static final String CORPUS = "s3://datasets.elasticmapreduce/ngrams/books/20090715/eng-all/5gram/data";
 	//private static final String TEST_CORP = "s3n://dsp112/eng.corp.10k";
 	
 	public static void runEmrJob(int k) throws IllegalArgumentException, IOException {
@@ -44,14 +45,14 @@ public class EmrRunner {
 		HadoopJarStepConfig JarStep1 = new HadoopJarStepConfig()
 		    .withJar(S3_JAR) // This should be a full map reduce application.
 		    .withMainClass("Job1")
-		    .withArgs(GOOGLE_ENG_1M /*input*/, 
+		    .withArgs(CORPUS /*input*/, 
 		    		INTERMEDIATE_PATH);
 		
 		HadoopJarStepConfig JarStep2 = new HadoopJarStepConfig()
 		    .withJar(S3_JAR) // This should be a full map reduce application.
 		    .withMainClass("Job2")
 		    .withArgs(INTERMEDIATE_PATH, 
-		    		"s3n://dsps161-ass2-output/output_eng_1m_run4" /*output*/, 
+		    		"s3n://dsps161-ass2-output/output_eng_1m_run5" /*output*/, 
 		    		String.valueOf(k));
 		 
 		StepConfig step1Config = new StepConfig()

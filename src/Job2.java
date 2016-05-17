@@ -6,6 +6,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
@@ -19,8 +20,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class Job2 {
 
-	public static class Job2Mapper extends Mapper<WordPair, IntWritable, WordPair, IntWritable> {
-		public void map(WordPair key, IntWritable value, Context context) throws IOException, InterruptedException {
+	public static class Job2Mapper extends Mapper<WordPair, LongWritable, WordPair, LongWritable> {
+		public void map(WordPair key, LongWritable value, Context context) throws IOException, InterruptedException {
 			if (key.getIsSum().get()) {
 				key.setW2("*");
 				context.write(key, value);
@@ -34,18 +35,18 @@ public class Job2 {
 	}
 	
 	      
-	public static class Job2Partitioner extends Partitioner<WordPair, IntWritable> {
+	public static class Job2Partitioner extends Partitioner<WordPair, LongWritable> {
 		@Override
-		public int getPartition(WordPair key, IntWritable value, int numPartitions) {
+		public int getPartition(WordPair key, LongWritable value, int numPartitions) {
 			return key.getDecade().get() % numPartitions;
 		}
 	}
 	
 	
-	public static class Job2Reducer extends Reducer<WordPair,IntWritable,LimitedTreeSet,IntWritable> {
-		private IntWritable result = new IntWritable();
+	public static class Job2Reducer extends Reducer<WordPair,LongWritable,LimitedTreeSet,IntWritable> {
+		private LongWritable result = new LongWritable();
 		private int k = 0;
-		private int c2 = 0;
+		private long c2 = 0;
 		private double joint;
 		private double dice;
 		private double geometric;
@@ -60,10 +61,10 @@ public class Job2 {
 			geometricTree = new LimitedTreeSet(k);	
 		}
 		
-		public void reduce(WordPair keyPair, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-			int sum = 0;
+		public void reduce(WordPair keyPair, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+			long sum = 0;
 			
-			for (IntWritable val : values) {
+			for (LongWritable val : values) {
 				sum += val.get();
 			}
 			result.set(sum);
@@ -178,7 +179,7 @@ public static class Job2RecordWriter extends RecordWriter<LimitedTreeSet, IntWri
 		
 		job.setMapperClass(Job2Mapper.class);
 		job.setMapOutputKeyClass(WordPair.class);
-		job.setMapOutputValueClass(IntWritable.class);
+		job.setMapOutputValueClass(LongWritable.class);
 		
 		job.setNumReduceTasks(11);
 		job.setPartitionerClass(Job2Partitioner.class);

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
@@ -15,9 +16,9 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        private IntWritable decade;
 	        private BooleanWritable isSum;
 	        private BooleanWritable isTotalSum;
-	        private IntWritable c1;
-	        private IntWritable c2;
-	        private IntWritable n;
+	        private LongWritable c1;
+	        private LongWritable c2;
+	        private LongWritable n;
 	        
 	        
 	        public WordPair() {
@@ -25,9 +26,9 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	            this.w2 = new Text();
 	            this.isSum = new BooleanWritable(false);
 	            this.isTotalSum = new BooleanWritable(false);
-	            this.c1 = new IntWritable(0);
-	            this.c2 = new IntWritable(0);
-	            this.n = new IntWritable(0);
+	            this.c1 = new LongWritable(0);
+	            this.c2 = new LongWritable(0);
+	            this.n = new LongWritable(0);
 	            this.decade = new IntWritable(0);
 	        }
 	        
@@ -36,9 +37,9 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	            w2 = new Text(other.getW2().toString());
 	            isSum = new BooleanWritable(other.getIsSum().get());
 	            isTotalSum = new BooleanWritable(other.getIsTotalSum().get());
-	            c1 = new IntWritable(other.getC1().get());
-	            c2 = new IntWritable(other.getC2().get());
-	            n = new IntWritable(other.getN().get());
+	            c1 = new LongWritable(other.getC1().get());
+	            c2 = new LongWritable(other.getC2().get());
+	            n = new LongWritable(other.getN().get());
 	            decade = new IntWritable(other.getDecade().get());
 	        }
 
@@ -174,17 +175,17 @@ public class WordPair implements Writable,WritableComparable<WordPair> {
 	        public void setDecade (int decade) {this.decade.set (decade -(decade % 10)); }
 	        public void setIsSum(boolean isSum) { this.isSum.set(isSum); }
 	        public void setIsTotalSum(boolean isTotalSum) { this.isTotalSum.set(isTotalSum); }
-	        public void setC1(int c1) { this.c1.set(c1); }
-	        public void setC2(int c2) { this.c2.set(c2); }
-	        public void setN(int n) { this.n.set(n); }
+	        public void setC1(long c1) { this.c1.set(c1); }
+	        public void setC2(long c2) { this.c2.set(c2); }
+	        public void setN(long n) { this.n.set(n); }
 	        
 	        public Text getW1() { return w1; }
 	        public Text getW2() { return w2; }
 	        public IntWritable getDecade() { return decade; }
 	        public BooleanWritable getIsSum() { return isSum; }
 	        public BooleanWritable getIsTotalSum() { return isTotalSum; }
-	        public IntWritable getC1() { return c1; }
-	        public IntWritable getC2() { return c2; }
-	        public IntWritable getN() { return n; }
+	        public LongWritable getC1() { return c1; }
+	        public LongWritable getC2() { return c2; }
+	        public LongWritable getN() { return n; }
 	        
 }
